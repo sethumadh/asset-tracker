@@ -18,9 +18,9 @@ const Home: NextPage = () => {
   const [sort_dir, setSort_dir] = useState("desc");
   const { data, error, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, status } =
     useInfiniteQuery({
-      queryKey: [api.fetchCoins.getAllCoins.queryKey, sort, sort_dir, query],
+      queryKey: [api.fetchCoins.getAllCoins.queryKey, sort, sort_dir],
       queryFn: ({ pageParam = 1 }) =>
-        api.fetchCoins.getAllCoins.query({ pageParam, sort, sort_dir , query}),
+        api.fetchCoins.getAllCoins.query({ pageParam, sort, sort_dir }),
       initialPageParam: 1,
       getNextPageParam: (lastPage, allPages) => {
         if (lastPage.length > 0) return allPages.length + 1;

@@ -40,12 +40,10 @@ export const fetchCoins = {
       pageParam = 1,
       sort,
       sort_dir,
-      query,
     }: {
       pageParam: number;
       sort: string;
       sort_dir: string;
-      query: string;
     }) => {
       const limit = 25;
       const start = (pageParam - 1) * limit + 1;
@@ -56,7 +54,6 @@ export const fetchCoins = {
             limit,
             sort,
             sort_dir,
-            slug: query == "" ? null : query,
           },
         });
         console.log(response.data.data);
