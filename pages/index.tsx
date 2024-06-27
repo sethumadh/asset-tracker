@@ -87,7 +87,9 @@ const Home: NextPage = () => {
                     A list of all the Coinswith details..
                   </p>
                 </div>
-                <Searchbar handleLoading={handleLoading} handleSearch={handleSearch} />
+                <span className="hidden">
+                  <Searchbar handleLoading={handleLoading} handleSearch={handleSearch} />
+                </span>
               </div>
               {isFetching && (
                 <div className="flex justify-center items-center min-h-screen">
