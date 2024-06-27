@@ -16,18 +16,16 @@ const Home: NextPage = () => {
   const [query, setQuery] = useState("");
 
   const { ref, inView } = useInView();
-  const [sort, setSort] = useState("market_cap"); // default sort field
+  const [sort, setSort] = useState("market_cap");
   const [sort_dir, setSort_dir] = useState("desc");
-  const { data, error, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, status } =
-    useInfiniteQuery({
-      queryKey: [api.fetchCoins.getAllCoins.queryKey, sort, sort_dir],
-      queryFn: ({ pageParam = 1 }) =>
-        api.fetchCoins.getAllCoins.query({ pageParam, sort, sort_dir }),
-      initialPageParam: 1,
-      getNextPageParam: (lastPage, allPages) => {
-        if (lastPage.length > 0) return allPages.length + 1;
-      },
-    });
+  const { data, error, fetchNextPage, hasNextPage, isLoading, status } = useInfiniteQuery({
+    queryKey: [api.fetchCoins.getAllCoins.queryKey, sort, sort_dir],
+    queryFn: ({ pageParam = 1 }) => api.fetchCoins.getAllCoins.query({ pageParam, sort, sort_dir }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length > 0) return allPages.length + 1;
+    },
+  });
 
   const { data: allCoins } = useQuery({
     queryKey: [api.fetchCoins.getoneThounsand.queryKey],
@@ -48,16 +46,6 @@ const Home: NextPage = () => {
     }
     setSort(sort);
   };
-  const handleSearch = useCallback(
-    (term: string) => {
-      setQuery(term);
-      setSort("market_cap");
-      setSort_dir("desc");
-    },
-    [setQuery]
-  );
-
-  // The function to return the all iomoprtant one to search and filter
 
   useEffect(() => {
     if (allCoins && query) {
