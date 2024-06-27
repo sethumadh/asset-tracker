@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { NextPage } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,10 +7,12 @@ import { FaChevronUp, FaChevronDown } from "react-icons/fa";
 import { useInView } from "react-intersection-observer";
 
 import { api } from "@/API/API";
+import { FetchCoinsSchema } from "@/API/fetchCoins/fetchCoins";
 import Searchbar from "@/components/Searchbar/Searchbar";
 import { fnum } from "@/utils/formatNumber";
 
 const Home: NextPage = () => {
+  const [coinsToDisplay, setCoinsToDisplay] = useState<FetchCoinsSchema>([]);
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { ref, inView } = useInView();
@@ -26,6 +28,14 @@ const Home: NextPage = () => {
         if (lastPage.length > 0) return allPages.length + 1;
       },
     });
+
+  const { data: allCoins, isLoading: allCoinsLoading } = useQuery({
+    queryKey: [api.fetchCoins.getoneThounsand.queryKey],
+    queryFn: api.fetchCoins.getoneThounsand.query,
+  });
+  useEffect(() => {
+    if (data?.pages) setCoinsToDisplay(data.pages.flatMap((page) => page));
+  }, [data?.pages]);
   useEffect(() => {
     if (inView && hasNextPage) fetchNextPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -51,7 +61,17 @@ const Home: NextPage = () => {
   }, []);
   // The function to return the all iomoprtant one to search and filter
 
-  console.log(query);
+  useEffect(() => {
+    if (allCoins && query) {
+      const lowerCaseQuery = query.toLowerCase();
+      const filteredData = allCoins.filter((coin) =>
+        coin.name.toLowerCase().includes(lowerCaseQuery)
+      );
+
+      setCoinsToDisplay(filteredData);
+    }
+  }, [allCoins, query]);
+
   return (
     <>
       <div className="max-w-4xl mx-auto border my-4 px-4 py-4 rounded-lg shadow-md">
@@ -155,62 +175,60 @@ const Home: NextPage = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {data?.pages?.map((page, i) =>
-                          page.map((coin) => (
-                            <tr key={coin.id} className="bg-white shadow rounded-lg">
-                              <td className="whitespace-nowrap text-center py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                                {coin.cmc_rank}
-                              </td>
-                              <td className="whitespace-nowrap text-center px-3 py-4 text-sm text-gray-500">
-                                <span className="flex justify-center items-center gap-4">
-                                  <span className="rounded-full">
-                                    <Image
-                                      src={`icons/color/${coin.symbol.toLowerCase()}.svg`}
-                                      alt={coin.name}
-                                      width={30}
-                                      height={30}
-                                    />
-                                  </span>
-                                  <span className="flex flex-col">
-                                    <span className="text-lg font-semibold">{coin.symbol}</span>
-                                    <span className="text-xs text-gray-500 italic">
-                                      {fnum(coin.quote.USD.market_cap)}
-                                    </span>
+                        {coinsToDisplay.map((coin) => (
+                          <tr key={coin.id} className="bg-white shadow rounded-lg">
+                            <td className="whitespace-nowrap text-center py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                              {coin.cmc_rank}
+                            </td>
+                            <td className="whitespace-nowrap text-center px-3 py-4 text-sm text-gray-500">
+                              <span className="flex justify-center items-center gap-4">
+                                <span className="rounded-full">
+                                  <Image
+                                    src={`icons/color/${coin.symbol.toLowerCase()}.svg`}
+                                    alt={coin.name}
+                                    width={30}
+                                    height={30}
+                                  />
+                                </span>
+                                <span className="flex flex-col">
+                                  <span className="text-lg font-semibold">{coin.symbol}</span>
+                                  <span className="text-xs text-gray-500 italic">
+                                    {fnum(coin.quote.USD.market_cap)}
                                   </span>
                                 </span>
-                              </td>
-                              <td className="whitespace-nowrap text-center px-3 py-4 text-sm text-gray-500">
-                                <span className="text-gray-500 sm:text-sm">$</span>{" "}
-                                {coin.quote.USD.price.toFixed(2)}
-                              </td>
-                              <td className="whitespace-nowrap text-center px-3 py-4 text-sm text-gray-500">
-                                <span
-                                  className={` ${
-                                    coin.quote.USD.volume_change_24h <= 0
-                                      ? "inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10"
-                                      : "inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
-                                  } min-w-20 text-center flex justify-center gap-2`}
-                                >
-                                  <span>
-                                    {coin.quote.USD.volume_change_24h <= 0 ? (
-                                      <>
-                                        <FaChevronDown className="text-red-600" />
-                                      </>
-                                    ) : (
-                                      <FaChevronUp className="text-green-600" />
-                                    )}
-                                  </span>
-                                  <span className="text-center">
-                                    {coin.quote.USD.volume_change_24h <= 0
-                                      ? (coin.quote.USD.volume_change_24h * -1).toFixed(2)
-                                      : coin.quote.USD.volume_change_24h.toFixed(2)}
-                                    %
-                                  </span>
+                              </span>
+                            </td>
+                            <td className="whitespace-nowrap text-center px-3 py-4 text-sm text-gray-500">
+                              <span className="text-gray-500 sm:text-sm">$</span>{" "}
+                              {coin.quote.USD.price.toFixed(2)}
+                            </td>
+                            <td className="whitespace-nowrap text-center px-3 py-4 text-sm text-gray-500">
+                              <span
+                                className={` ${
+                                  coin.quote.USD.volume_change_24h <= 0
+                                    ? "inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10"
+                                    : "inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
+                                } min-w-20 text-center flex justify-center gap-2`}
+                              >
+                                <span>
+                                  {coin.quote.USD.volume_change_24h <= 0 ? (
+                                    <>
+                                      <FaChevronDown className="text-red-600" />
+                                    </>
+                                  ) : (
+                                    <FaChevronUp className="text-green-600" />
+                                  )}
                                 </span>
-                              </td>
-                            </tr>
-                          ))
-                        )}
+                                <span className="text-center">
+                                  {coin.quote.USD.volume_change_24h <= 0
+                                    ? (coin.quote.USD.volume_change_24h * -1).toFixed(2)
+                                    : coin.quote.USD.volume_change_24h.toFixed(2)}
+                                  %
+                                </span>
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>

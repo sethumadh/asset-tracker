@@ -56,7 +56,26 @@ export const fetchCoins = {
             sort_dir,
           },
         });
-        console.log(response.data.data);
+
+        return fetchCoinsSchema.parse(response.data.data);
+      } catch (error) {
+        console.error(error, ":zod validation error");
+        throw error;
+      }
+    },
+  },
+  getoneThounsand: {
+    queryKey: "getOneThounsand",
+    schema: fetchCoinsSchema,
+    query: async () => {
+      const limit = 1000;
+      try {
+        const response = await axios.get("api/getAll/getAll", {
+          params: {
+            limit,
+          },
+        });
+
         return fetchCoinsSchema.parse(response.data.data);
       } catch (error) {
         console.error(error, ":zod validation error");
