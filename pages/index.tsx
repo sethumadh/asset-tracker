@@ -14,11 +14,11 @@ import { fnum } from "@/utils/formatNumber";
 const Home: NextPage = () => {
   const [coinsToDisplay, setCoinsToDisplay] = useState<FetchCoinsSchema>([]);
   const [query, setQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+
   const { ref, inView } = useInView();
   const [sort, setSort] = useState("market_cap"); // default sort field
   const [sort_dir, setSort_dir] = useState("desc");
-  const { data, error, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, status } =
+  const { data, error, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, status } =
     useInfiniteQuery({
       queryKey: [api.fetchCoins.getAllCoins.queryKey, sort, sort_dir],
       queryFn: ({ pageParam = 1 }) =>
@@ -29,7 +29,7 @@ const Home: NextPage = () => {
       },
     });
 
-  const { data: allCoins, isLoading: allCoinsLoading } = useQuery({
+  const { data: allCoins } = useQuery({
     queryKey: [api.fetchCoins.getoneThounsand.queryKey],
     queryFn: api.fetchCoins.getoneThounsand.query,
   });
@@ -56,9 +56,7 @@ const Home: NextPage = () => {
     },
     [setQuery]
   );
-  const handleLoading = useCallback((bool: boolean) => {
-    setIsLoading(bool);
-  }, []);
+
   // The function to return the all iomoprtant one to search and filter
 
   useEffect(() => {
@@ -87,11 +85,8 @@ const Home: NextPage = () => {
                     A list of all the Coinswith details..
                   </p>
                 </div>
-                <span className="hidden">
-                  <Searchbar handleLoading={handleLoading} handleSearch={handleSearch} />
-                </span>
               </div>
-              {isFetching && (
+              {isLoading && (
                 <div className="flex justify-center items-center min-h-screen">
                   <div className="">loading</div>
                 </div>
